@@ -8,6 +8,7 @@ import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 
 export default function App() {
+  console.log("App component is rendering!");
   const vtkContainerRef = useRef<HTMLDivElement>(null);
   const vtkContext = useRef<any>(null);
   const [scalarArrays, setScalarArrays] = useState<string[]>([]);
@@ -29,14 +30,15 @@ export default function App() {
     const actor = vtkActor.newInstance();
 
     const ctfun = vtkColorTransferFunction.newInstance();
-    ctfun.addRGBPoint(0, 0.0, 0.0, 1.0);
-    ctfun.addRGBPoint(0.5, 0.0, 1.0, 0.0);
-    ctfun.addRGBPoint(1, 1.0, 0.0, 0.0);
+    // We will dynamically populate RGB points based on the selected array's range
 
     mapper.setInputConnection(reader.getOutputPort());
     mapper.setLookupTable(ctfun);
     mapper.setUseLookupTableScalarRange(true);
     actor.setMapper(mapper);
+    
+    // Set opacity to 0.5 so interior fields are visible if it's an enclosed block!
+    actor.getProperty().setOpacity(0.5);
     
     renderer.addActor(actor);
 
@@ -102,9 +104,21 @@ export default function App() {
       const range = array.getRange();
       mapper.setScalarModeToUsePointFieldData();
       mapper.setColorByArrayName(selectedScalar);
+      
+      ctfun.removeAllPoints();
+      // Blue -> Green -> Red
+      ctfun.addRGBPoint(range[0], 0.0, 0.0, 1.0);
+      ctfun.addRGBPoint((range[0] + range[1]) / 2.0, 0.0, 1.0, 0.0);
+      ctfun.addRGBPoint(range[1], 1.0, 0.0, 0.0);
+      
       ctfun.setMappingRange(range[0], range[1]);
       mapper.setScalarRange(range[0], range[1]);
       mapper.setScalarVisibility(true);
+      
+      // Force a camera reset when changing scalar just to ensure it's in view
+      const renderer = renderWindow.getRenderers()[0];
+      renderer.resetCamera();
+      
       renderWindow.render();
     }
   }, [selectedScalar]);
