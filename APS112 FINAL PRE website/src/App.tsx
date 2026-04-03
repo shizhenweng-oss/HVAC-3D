@@ -39,15 +39,14 @@ export default function App() {
     const ctfun = vtkColorTransferFunction.newInstance();
     // We will dynamically populate RGB points based on the selected array's range
 
-    mapper.setInputConnection(reader.getOutputPort());
+    // We DO NOT connect input or add actor yet to avoid "No input!" errors
+    // and preventing the camera from resetting to invalid [0,0,0] bounds.
     mapper.setLookupTable(ctfun);
     mapper.setUseLookupTableScalarRange(true);
     actor.setMapper(mapper);
     
-    // Set opacity to 0.5 so interior fields are visible if it's an enclosed block!
-    actor.getProperty().setOpacity(0.5);
-    
-    renderer.addActor(actor);
+    // Set opacity to 0.9 as in SimScale screenshot
+    actor.getProperty().setOpacity(0.9);
 
     vtkContext.current = {
       genericRenderWindow,
@@ -73,14 +72,19 @@ export default function App() {
       }
       setScalarArrays(arrays);
       
+      // Now that data is here, connect the pipeline!
+      mapper.setInputConnection(reader.getOutputPort());
+      renderer.addActor(actor);
+
       if (arrays.length > 0) {
         setSelectedScalar(arrays[0]);
+      } else {
+        // Fallback camera reset if no scalars
+        const camera = renderer.getActiveCamera();
+        renderer.resetCamera();
+        camera.zoom(0.8);
+        renderWindow.render();
       }
-
-      const camera = renderer.getActiveCamera();
-      renderer.resetCamera();
-      camera.zoom(0.8); // Zoom out a bit so the whole body is easier to see
-      renderWindow.render();
     }).catch((err: any) => {
       console.error("Error loading VTP:", err);
     });
@@ -117,9 +121,7 @@ export default function App() {
       const range = array.getRange();
       setScalarRange([range[0], range[1]]);
       
-      // Explicitly activate the array for coloring
-      pointData.setActiveScalars(selectedScalar);
-      mapper.setScalarModeToUsePointData();
+      mapper.setScalarModeToUsePointFieldData();
       mapper.setColorByArrayName(selectedScalar);
       
       ctfun.removeAllPoints();
