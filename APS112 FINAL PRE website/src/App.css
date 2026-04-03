@@ -65,3 +65,40 @@ body {
   overflow: hidden;
   box-sizing: border-box;
 }
+
+.scalar-legend {
+  position: absolute;
+  bottom: 40px;
+  right: 40px;
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  height: 250px;
+  z-index: 100;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+
+.legend-bar {
+  width: 24px;
+  flex-grow: 1;
+  background: linear-gradient(to top, blue, cyan, lime, yellow, red);
+  margin: 10px 0;
+  border: 1px solid #fff;
+}
+
+.legend-val {
+  font-size: 1rem;
+  font-family: monospace;
+}
+
+.legend-title {
+  margin-top: 5px;
+  font-weight: bold;
+  font-size: 1.1rem;
+}

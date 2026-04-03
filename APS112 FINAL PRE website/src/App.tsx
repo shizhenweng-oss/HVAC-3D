@@ -13,6 +13,7 @@ export default function App() {
   const vtkContext = useRef<any>(null);
   const [scalarArrays, setScalarArrays] = useState<string[]>([]);
   const [selectedScalar, setSelectedScalar] = useState<string>('');
+  const [scalarRange, setScalarRange] = useState<[number, number]>([0, 1]);
   const [errorMsg, setErrorMsg] = useState<string>('');
 
   useEffect(() => {
@@ -114,13 +115,19 @@ export default function App() {
     const array = pointData.getArrayByName(selectedScalar);
     if (array) {
       const range = array.getRange();
-      mapper.setScalarModeToUsePointFieldData();
+      setScalarRange([range[0], range[1]]);
+      
+      // Explicitly activate the array for coloring
+      pointData.setActiveScalars(selectedScalar);
+      mapper.setScalarModeToUsePointData();
       mapper.setColorByArrayName(selectedScalar);
       
       ctfun.removeAllPoints();
-      // Blue -> Green -> Red
+      // SimScale-like Rainbow: Blue -> Cyan -> Green -> Yellow -> Red
       ctfun.addRGBPoint(range[0], 0.0, 0.0, 1.0);
-      ctfun.addRGBPoint((range[0] + range[1]) / 2.0, 0.0, 1.0, 0.0);
+      ctfun.addRGBPoint(range[0] + (range[1]-range[0])*0.25, 0.0, 1.0, 1.0);
+      ctfun.addRGBPoint(range[0] + (range[1]-range[0])*0.50, 0.0, 1.0, 0.0);
+      ctfun.addRGBPoint(range[0] + (range[1]-range[0])*0.75, 1.0, 1.0, 0.0);
       ctfun.addRGBPoint(range[1], 1.0, 0.0, 0.0);
       
       ctfun.setMappingRange(range[0], range[1]);
@@ -156,7 +163,16 @@ export default function App() {
         </div>
       </header>
       {errorMsg && <div style={{padding: '20px', color:'red'}}>{errorMsg}</div>}
-      <div ref={vtkContainerRef} className="vtk-container" />
+      <div ref={vtkContainerRef} className="vtk-container">
+        {selectedScalar && (
+          <div className="scalar-legend">
+            <span className="legend-val">{scalarRange[1].toFixed(2)}</span>
+            <div className="legend-bar"></div>
+            <span className="legend-val">{scalarRange[0].toFixed(2)}</span>
+            <div className="legend-title">{selectedScalar}</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
