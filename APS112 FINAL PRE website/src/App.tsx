@@ -6,6 +6,7 @@ import vtkXMLPolyDataReader from '@kitware/vtk.js/IO/XML/XMLPolyDataReader';
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
+import vtkInteractorStyleTrackballCamera from '@kitware/vtk.js/Interaction/Style/InteractorStyleTrackballCamera';
 
 export default function App() {
   const vtkContainerRef = useRef<HTMLDivElement>(null);
@@ -25,6 +26,10 @@ export default function App() {
 
     const renderer = genericRenderWindow.getRenderer();
     const renderWindow = genericRenderWindow.getRenderWindow();
+    
+    // Explicitly set trackball camera behavior for robust interaction
+    const interactor = renderWindow.getInteractor();
+    interactor.setInteractorStyle(vtkInteractorStyleTrackballCamera.newInstance());
 
     const reader = vtkXMLPolyDataReader.newInstance();
     const mapper = vtkMapper.newInstance();
@@ -71,7 +76,9 @@ export default function App() {
         setSelectedScalar(arrays[0]);
       }
 
+      const camera = renderer.getActiveCamera();
       renderer.resetCamera();
+      camera.zoom(0.8); // Zoom out a bit so the whole body is easier to see
       renderWindow.render();
     }).catch((err: any) => {
       console.error("Error loading VTP:", err);
@@ -122,7 +129,9 @@ export default function App() {
       
       // Force a camera reset when changing scalar just to ensure it's in view
       const renderer = renderWindow.getRenderers()[0];
+      const camera = renderer.getActiveCamera();
       renderer.resetCamera();
+      camera.zoom(0.8);
       
       renderWindow.render();
     }
