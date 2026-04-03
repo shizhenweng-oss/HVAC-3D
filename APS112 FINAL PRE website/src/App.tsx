@@ -8,13 +8,14 @@ import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
 
 export default function App() {
-  console.log("App component is rendering!");
   const vtkContainerRef = useRef<HTMLDivElement>(null);
   const vtkContext = useRef<any>(null);
   const [scalarArrays, setScalarArrays] = useState<string[]>([]);
   const [selectedScalar, setSelectedScalar] = useState<string>('');
+  const [errorMsg, setErrorMsg] = useState<string>('');
 
   useEffect(() => {
+    try {
     if (!vtkContainerRef.current) return;
 
     const genericRenderWindow = vtkGenericRenderWindow.newInstance({
@@ -89,6 +90,10 @@ export default function App() {
       genericRenderWindow.delete();
       ctfun.delete();
     };
+    } catch (e: any) {
+       console.error("VTK Init Error", e);
+       setErrorMsg(e.toString());
+    }
   }, []);
 
   useEffect(() => {
@@ -138,6 +143,7 @@ export default function App() {
           </div>
         )}
       </header>
+      {errorMsg && <div style={{padding: '20px', color:'red'}}>{errorMsg}</div>}
       <div ref={vtkContainerRef} className="vtk-container" />
     </div>
   );

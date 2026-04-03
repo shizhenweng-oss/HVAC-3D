@@ -8,7 +8,4 @@ export default defineConfig({
       allow: [".."],
     },
   },
-  optimizeDeps: {
-    exclude: ["@kitware/vtk.js"],
-  },
 });
