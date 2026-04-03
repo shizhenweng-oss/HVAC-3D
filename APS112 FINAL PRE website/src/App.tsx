@@ -151,6 +151,9 @@ export default function App() {
             </select>
           </div>
         )}
+        <div className="controls-hint">
+          Left-Click: Rotate &nbsp;|&nbsp; Shift + Left-Click: Pan &nbsp;|&nbsp; Scroll: Zoom
+        </div>
       </header>
       {errorMsg && <div style={{padding: '20px', color:'red'}}>{errorMsg}</div>}
       <div ref={vtkContainerRef} className="vtk-container" />
