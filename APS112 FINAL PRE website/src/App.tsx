@@ -17,8 +17,9 @@ export default function App() {
   const [errorMsg, setErrorMsg] = useState<string>('');
 
   useEffect(() => {
+    let isMounted = true;
     try {
-    if (!vtkContainerRef.current) return;
+      if (!vtkContainerRef.current) return;
 
     const genericRenderWindow = vtkGenericRenderWindow.newInstance({
       background: [0.15, 0.15, 0.15],
@@ -60,6 +61,7 @@ export default function App() {
     const fileUrl = '/HVACzoning-Prot_V1__no_returning_vent_-Basement_with_unfinished_return_vents_-SOLUTION_FIELDS/surface.vtp';
     
     reader.setUrl(fileUrl).then(() => {
+      if (!isMounted) return;
       const data = reader.getOutputData(0);
       if (!data) return;
       
@@ -86,15 +88,16 @@ export default function App() {
         renderWindow.render();
       }
     }).catch((err: any) => {
-      console.error("Error loading VTP:", err);
+      if (isMounted) console.error("Error loading VTP:", err);
     });
 
     const resizeObserver = new ResizeObserver(() => {
-      genericRenderWindow.resize();
+      if (isMounted) genericRenderWindow.resize();
     });
     resizeObserver.observe(vtkContainerRef.current);
 
     return () => {
+      isMounted = false;
       resizeObserver.disconnect();
       actor.delete();
       mapper.delete();
@@ -165,7 +168,8 @@ export default function App() {
         </div>
       </header>
       {errorMsg && <div style={{padding: '20px', color:'red'}}>{errorMsg}</div>}
-      <div ref={vtkContainerRef} className="vtk-container">
+      <div className="vtk-container" style={{ position: 'relative', width: '100%', height: 'calc(100vh - 60px)', overflow: 'hidden' }}>
+        <div ref={vtkContainerRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
         {selectedScalar && (
           <div className="scalar-legend">
             <span className="legend-val">{scalarRange[1].toFixed(2)}</span>
